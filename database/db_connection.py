@@ -1,9 +1,13 @@
+import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from dotenv import load_dotenv
 
+# .env 파일 로드
+load_dotenv()
 
-# 데이터베이스 연결 정보 설정
-DATABASE_URL = "mysql+pymysql://root:epqp12!@localhost:3306/fastapi_db"
+# 환경 변수에서 DATABASE_URL 읽어오기
+DATABASE_URL = os.getenv("DATABASE_URL")
 
 # 엔진 생성
 engine = create_engine(DATABASE_URL, echo=True)
@@ -15,4 +19,3 @@ SessionFactory = sessionmaker(
     expire_on_commit=False,
     bind=engine
 )
-
