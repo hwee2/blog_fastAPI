@@ -21,7 +21,7 @@
 
 ```text
 └── blog/                          
-    ├── database/                  # 데이터베이스 관련 설정 폴더
+    ├── database/                  
     │   ├── db_connection.py       # 데이터베이스 연결 및 세션 관리
     │   └── orm.py                 # SQLAlchemy 기본 클래스(Base) 정의
     ├── scheme/                    
