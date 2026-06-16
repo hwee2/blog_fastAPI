@@ -1,7 +1,9 @@
 [FastAPI Blog API]
 
-26. 6. 16
-FastAPI를 사용하여 개발한 블로그 게시글 관리 RESTful API 서버입니다. SQLAlchemy ORM을 활용하여 데이터베이스 연동 및 블로그 CRUD 기능을 구현하였습니다.
+(26. 6. 16)
+       
+- FastAPI를 사용하여 개발한 블로그 게시글 관리 RESTful API 서버
+- SQLAlchemy ORM을 활용하여 데이터베이스 연동 및 블로그 CRUD 기능 구현
 
 
 🛠️ 기술 스택 (Tech Stack)
