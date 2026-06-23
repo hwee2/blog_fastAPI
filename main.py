@@ -1,12 +1,11 @@
 from sqlalchemy.ext.asyncio import session
-
-from scheme.request import ArticleRequest, ArticleUpdateRequest
-from scheme.response import ArticleRequest
+from scheme.request import ArticleRequest, ArticleUpdateRequest, CommentRequest
+from scheme.response import ArticleRequest, CommentResponse
 from fastapi import FastAPI, status, HTTPException
 from sqlalchemy import select
 from database.db_connection import engine, SessionFactory
 from database.orm import Base
-from models import Article
+from models import Article, Comment
 app = FastAPI()
 
 # # 게시글 저장
@@ -84,3 +83,17 @@ def delete_article(article_id: int):
         raise HTTPException(status_code=404, detail="Article Not found.")
     finally:
         session.close()
+
+# 댓글 작성
+@app.post("/articles/{article_id}/comments", response_model=CommentResponse)
+def create_comment_handler(article_id: int, body: CommentRequest):
+    with SessionFactory() as session:
+        stmt = select(Article).where(Article.id == article_id)
+        article = session.execute(stmt).scalar().first()
+        if article is None:
+            raise HTTPException(status_code=404, detail="Article Not found.")
+        comment = Comment(author=body.author, content=body.content, article_id=article_id)
+        session.add(comment)
+        session.commit()
+        session.refresh(comment)
+        return comment
