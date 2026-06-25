@@ -2,16 +2,16 @@ from sqlalchemy.ext.asyncio import session
 from scheme.request import ArticleRequest, ArticleUpdateRequest, CommentRequest
 from scheme.response import ArticleRequest, CommentResponse
 from fastapi import FastAPI, status, HTTPException, Request
+from models import Article, Comment
 from sqlalchemy import select
 from database.db_connection import engine, SessionFactory
 from database.orm import Base
-from models import Article, Comment
-from  starlette.middleware.sessions import SessionMiddleware
+from starlette.middleware.sessions import SessionMiddleware
 from scheme.request import LoginRequest
 
 app = FastAPI()
 
-
+Base.metadata.create_all(bind=engine)
 # 세션 미들웨어 등록
 app.add_middleware(SessionMiddleware, secret_key="your_secret_key")
 
@@ -34,6 +34,7 @@ def login_handler(request: Request, body: LoginRequest):
 def get_articles():
     session = SessionFactory()
     try:
+        stmt = select(Article)
         articles = session.execute(stmt).scalars().all()
         return articles
     finally:
@@ -77,7 +78,7 @@ def update_article(article_id: int, body: ArticleRequest):
                 article.title = body.title
             if body.content is not None:
                 article.content = body.content
-            session.add(article)
+            session.commit()
             return article
         raise HTTPException(status_code=404, detail="Article Not found.")
     finally:
