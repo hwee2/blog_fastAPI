@@ -1,12 +1,20 @@
 from sqlalchemy.ext.asyncio import session
 from scheme.request import ArticleRequest, ArticleUpdateRequest, CommentRequest
 from scheme.response import ArticleRequest, CommentResponse
-from fastapi import FastAPI, status, HTTPException
+from fastapi import FastAPI, status, HTTPException, Request
 from sqlalchemy import select
 from database.db_connection import engine, SessionFactory
 from database.orm import Base
 from models import Article, Comment
+from  starlette.middleware.sessions import SessionMiddleware
+from scheme.request import LoginRequest
+
 app = FastAPI()
+
+
+# 세션 미들웨어 등록
+app.add_middleware(SessionMiddleware, secret_key="your_secret_key")
+
 
 # # 게시글 저장
 # articles = [
@@ -14,6 +22,12 @@ app = FastAPI()
 #     {"id": 2, "title": "책 읽기", "content": "30페이지 읽기"},
 #     {"id": 3, "title": "밥 먹기", "content": "저녁 먹기"}
 # ]
+
+# 로그인
+@app.post("/login")
+def login_handler(request: Request, body: LoginRequest):
+    request.session["name"] = body.name
+    return {"message": "Login Success"}
 
 # 전체 게시글 조회
 @app.get("/articles", response_model=ArticleRequest, status_code=status.HTTP_200_OK)
@@ -86,14 +100,22 @@ def delete_article(article_id: int):
 
 # 댓글 작성
 @app.post("/articles/{article_id}/comments", response_model=CommentResponse)
-def create_comment_handler(article_id: int, body: CommentRequest):
+def create_comment_handler(article_id: int, request: Request, body: CommentRequest):
     with SessionFactory() as session:
+        #로그인 확인
+        name = request.session.get("name")
+        if name is None:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized")
         stmt = select(Article).where(Article.id == article_id)
-        article = session.execute(stmt).scalar().first()
-        if article is None:
+        article_id = session.execute(stmt).scalars().first()
+
+        if article_id is None:
             raise HTTPException(status_code=404, detail="Article Not found.")
-        comment = Comment(author=body.author, content=body.content, article_id=article_id)
+
+        comment = Comment(author=name, content=body.content, article_id=article_id)
         session.add(comment)
         session.commit()
         session.refresh(comment)
         return comment
+
+
