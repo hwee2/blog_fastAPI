@@ -2,7 +2,7 @@ from pydantic import BaseModel
 from datetime import datetime
 
 # 게시글 응답
-class ArticleRequest(BaseModel):
+class ArticleResponse(BaseModel):
     id : int
     title : str
     content : str
@@ -12,5 +12,5 @@ class CommentResponse(BaseModel):
     id : int
     author : str
     content : str
-    created : datetime
+    created_at : datetime
 

@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import session
 from scheme.request import ArticleRequest, ArticleUpdateRequest, CommentRequest
-from scheme.response import ArticleRequest, CommentResponse
+from scheme.response import CommentResponse, ArticleResponse
 from fastapi import FastAPI, status, HTTPException, Request
 from models import Article, Comment
 from sqlalchemy import select
@@ -30,7 +30,7 @@ def login_handler(request: Request, body: LoginRequest):
     return {"message": "Login Success"}
 
 # 전체 게시글 조회
-@app.get("/articles", response_model=ArticleRequest, status_code=status.HTTP_200_OK)
+@app.get("/articles", response_model=list[ArticleResponse], status_code=status.HTTP_200_OK)
 def get_articles():
     session = SessionFactory()
     try:
@@ -108,7 +108,7 @@ def create_comment_handler(article_id: int, request: Request, body: CommentReque
         if name is None:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized")
         stmt = select(Article).where(Article.id == article_id)
-        article_id = session.execute(stmt).scalars().first()
+        article = session.execute(stmt).scalars().first()
 
         if article_id is None:
             raise HTTPException(status_code=404, detail="Article Not found.")
