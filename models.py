@@ -1,4 +1,3 @@
-from xml.dom.minidom import Comment
 
 from sqlalchemy import Integer, String, ForeignKey, DateTime, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -19,7 +18,7 @@ class Article(Base):
     comments: Mapped[list["Comment"]] = relationship(back_populates="article", cascade="all, delete-orphan")
 
 #Comment 모델
-class Comments(Base):
+class Comment(Base):
     __tablename__ = 'comment'
 
     id : Mapped[int] = mapped_column(Integer, primary_key=True,autoincrement=True)
