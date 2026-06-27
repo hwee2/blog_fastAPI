@@ -1,13 +1,15 @@
 from sqlalchemy.ext.asyncio import session
 from scheme.request import ArticleRequest, ArticleUpdateRequest, CommentRequest
 from scheme.response import CommentResponse, ArticleResponse
-from fastapi import FastAPI, status, HTTPException, Request
+from fastapi import FastAPI, status, HTTPException, Request, Depends
 from models import Article, Comment
 from sqlalchemy import select
 from database.db_connection import engine, SessionFactory
 from database.orm import Base
 from starlette.middleware.sessions import SessionMiddleware
 from scheme.request import LoginRequest
+from sqlalchemy.orm import Session
+from database.db_connection import get_session
 
 app = FastAPI()
 
@@ -31,46 +33,46 @@ def login_handler(request: Request, body: LoginRequest):
 
 # 전체 게시글 조회
 @app.get("/articles", response_model=list[ArticleResponse], status_code=status.HTTP_200_OK)
-def get_articles():
-    session = SessionFactory()
-    try:
+def get_articles_handler(session = Depends(get_session)):
+    # session = SessionFactory()
+    # try:
         stmt = select(Article)
         articles = session.execute(stmt).scalars().all()
         return articles
-    finally:
-        session.close()
+    # finally:
+    #     session.close()
 
 # 단일 게시글 조회
 @app.get("/articles/{article_id}", response_model=ArticleRequest, status_code=status.HTTP_200_OK)
-def get_article(article_id: int):
-    session = SessionFactory()
-    try:
+def get_article(article_id: int, session = Depends(get_session)):
+    # session = SessionFactory()
+    # try:
         stmt = select(Article).where(Article.id == article_id)
         article = session.execute(stmt).scalars().first()
         if article :
             return article
         raise HTTPException(status_code=404, detail="Article Not found.")
-    finally:
-        session.close()
+    # finally:
+    #     session.close()
 
 
 # 게시글 생성
 @app.post("/articles", response_model=ArticleRequest, status_code=status.HTTP_201_CREATED)
-def create_article(body: ArticleRequest):
-    session = SessionFactory()
-    try:
+def create_article(body: ArticleRequest, session = Depends(get_session)):
+    # session = SessionFactory()
+    # try:
         article = Article(title=body.title, content=body.content)
         session.add(article)
         session.commit()
         return article
-    finally:
-        session.close()
+    # finally:
+    #     session.close()
 
 # 게시글 수정
 @app.patch("/articles/{article_id}", response_model=ArticleRequest, status_code=status.HTTP_200_OK)
-def update_article(article_id: int, body: ArticleRequest):
-    session = SessionFactory()
-    try:
+def update_article(article_id: int, body: ArticleRequest, session = Depends(get_session)):
+    # session = SessionFactory()
+    # try:
         stmt = select(Article).where(Article.id == article_id)
         article = session.execute(stmt).scalars().first()
         if article :
@@ -81,14 +83,14 @@ def update_article(article_id: int, body: ArticleRequest):
             session.commit()
             return article
         raise HTTPException(status_code=404, detail="Article Not found.")
-    finally:
-        session.close()
+    # finally:
+    #     session.close()
 
 # 게시글 삭제
 @app.delete("/articles/{article_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_article(article_id: int):
-    session = SessionFactory()
-    try:
+def delete_article(article_id: int, session = Depends(get_session)):
+    # session = SessionFactory()
+    # try:
         stmt = select(Article).where(Article.id == article_id)
         article = session.execute(stmt).scalars().first()
         if article :
@@ -96,13 +98,13 @@ def delete_article(article_id: int):
             session.commit()
             return
         raise HTTPException(status_code=404, detail="Article Not found.")
-    finally:
-        session.close()
+    # finally:
+    #     session.close()
 
 # 댓글 작성
 @app.post("/articles/{article_id}/comments", response_model=CommentResponse)
-def create_comment_handler(article_id: int, request: Request, body: CommentRequest):
-    with SessionFactory() as session:
+def create_comment_handler(article_id: int, request: Request, body: CommentRequest, session = Depends(get_session)):
+    # with SessionFactory() as session:
         #로그인 확인
         name = request.session.get("name")
         if name is None:
